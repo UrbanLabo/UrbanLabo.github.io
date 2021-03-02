@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css">
+        <link rel="stylesheet" href="css/qgis2web.css"><link rel="stylesheet" href="css/fontawesome-all.min.css">
+
+        <!-- スタイルシートの読み込み -->
+        <link rel="stylesheet" href="style.css">
+
+        <!-- Googlefonts読み込み -->
+          <!--Noto Sans JP -->
+          <link rel="preconnect" href="https://fonts.gstatic.com">
+          <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300&display=swap" rel="stylesheet">
+          <link rel="preconnect" href="https://fonts.gstatic.com">
+          <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500&display=swap" rel="stylesheet">
+
+
+        <title></title>
+
+    </head>
+    <body>
+      <header>
+        <h1>全国都市雇用圏マップ</h1>
+      </header>
+      <div class = "contents">
+        <div class = "contents-title">
+          <h2>平成２７（２０１５）年国勢調査版</h2>
+        </div>
+
+        <div class = "main-contents">
+          <div class = "flex">
+            <div class = "item">
+              <div id="map"></div>
+            </div>
+              <div class = "item"><img src = "images/usageguide.svg" alt = "usageguide"></div>
+        </div>
+        </div>
+      </div>
+
+
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <script src="js/labels.js"></script>
+        <script src="data/citiessimple2015_1.js"></script>
+        <script src="data/UEAsimple2015line_2.js"></script>
+        <script>
+        var map = L.map('map', {
+            zoomControl:true, maxZoom:28, minZoom:1
+        }).fitBounds([[34.925290883912126,137.8521188640451],[37.01580895585004,141.79138005202827]]);
+        var hash = new L.Hash(map);
+        map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
+        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+        var bounds_group = new L.featureGroup([]);
+        function setBounds() {
+        }
+        map.createPane('pane__0');
+        map.getPane('pane__0').style.zIndex = 400;
+
+        //地理院タイル淡色地図
+        var lightcolor_map = new L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {
+          attribution: "<a href='https://maps.gsi.go.jp/development/ichiran.html' target='_blank'>地理院タイル</a>"});
+        //地理院タイル標準地図
+        var std_map = new L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {
+          attribution: "<a href='https://maps.gsi.go.jp/development/ichiran.html' target='_blank'>地理院タイル</a>"});
+        //地理院タイル写真
+        var seamlessphoto_map = new L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {
+          attribution: "<a href='https://maps.gsi.go.jp/development/ichiran.html' target='_blank'>地理院タイル</a>"});
+        //オープンストリートマップ
+        var os_map = new L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: "Map data © <a href='https://www.openstreetmap.org/copyright' target='_blank'>OpenStreetMap</a> contributors"});
+        var myMaps = {
+          "地理院タイル　淡色地図": lightcolor_map,
+          "地理院タイル　標準地図": std_map,
+          "地理院タイル　写真": seamlessphoto_map,
+          "OpenStreetMap": os_map,};
+        L.control.layers(myMaps).addTo(map);
+        lightcolor_map.addTo(map);
+
+
+        //var layer__0 = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {
+        //    pane: 'pane__0',
+        //    opacity: 1.0,
+        //    attribution: '',
+        //    minZoom: 1,
+        //    maxZoom: 28,
+        //    minNativeZoom: 0,
+        //    maxNativeZoom: 18
+        //});
+        //layer__0;
+        //map.addLayer(layer__0);
+        function pop_citiessimple2015_1(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">UEAcode</th>\
+                        <td>' + (feature.properties['UEAcode'] !== null ? autolinker.link(feature.properties['UEAcode'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">UEAname</th>\
+                        <td>' + (feature.properties['UEAname'] !== null ? autolinker.link(feature.properties['UEAname'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">UEAsubname</th>\
+                        <td>' + (feature.properties['UEAsubname'] !== null ? autolinker.link(feature.properties['UEAsubname'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">cityCode</th>\
+                        <td>' + (feature.properties['cityCode'] !== null ? autolinker.link(feature.properties['cityCode'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">prefName</th>\
+                        <td>' + (feature.properties['prefName'] !== null ? autolinker.link(feature.properties['prefName'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">cityName</th>\
+                        <td>' + (feature.properties['cityName'] !== null ? autolinker.link(feature.properties['cityName'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">UEAflag</th>\
+                        <td>' + (feature.properties['UEAflag'] !== null ? autolinker.link(feature.properties['UEAflag'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">cityFlag</th>\
+                        <td>' + (feature.properties['cityFlag'] !== null ? autolinker.link(feature.properties['cityFlag'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+        }
+
+        function style_citiessimple2015_1_0(feature) {
+            switch(String(feature.properties['cityFlag'])) {
+                case 'C1':
+                    return {
+                pane: 'pane_citiessimple2015_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0,
+                fill: true,
+                fillOpacity: 0.6,
+                fillColor: 'rgba(8,48,107,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'C2':
+                    return {
+                pane: 'pane_citiessimple2015_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0,
+                fill: true,
+                fillOpacity: 0.6,
+                //fillColor: 'rgba(21,99,170,1.0)',
+                fillColor: 'rgba(8,48,107,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'S1':
+                    return {
+                pane: 'pane_citiessimple2015_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0,
+                fill: true,
+                fillOpacity: 0.6,
+                fillColor: 'rgba(62,142,196,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'S2':
+                    return {
+                pane: 'pane_citiessimple2015_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0,
+                fill: true,
+                fillOpacity: 0.6,
+                fillColor: 'rgba(115,179,216,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'S3':
+                    return {
+                pane: 'pane_citiessimple2015_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0,
+                fill: true,
+                fillOpacity: 0.6,
+                fillColor: 'rgba(176,210,232,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'S4':
+                    return {
+                pane: 'pane_citiessimple2015_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0,
+                fill: true,
+                fillOpacity: 0.6,
+                fillColor: 'rgba(216,231,245,1.0)',
+                interactive: true,
+            }
+                    break;
+                default:
+                    return {
+                pane: 'pane_citiessimple2015_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0,
+                fill: true,
+                fillOpacity: 0,
+                fillColor: 'rgba(255,255,255,1.0)',
+                interactive: true,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_citiessimple2015_1');
+        map.getPane('pane_citiessimple2015_1').style.zIndex = 401;
+        map.getPane('pane_citiessimple2015_1').style['mix-blend-mode'] = 'normal';
+        var layer_citiessimple2015_1 = new L.geoJson(json_citiessimple2015_1, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_citiessimple2015_1',
+            layerName: 'layer_citiessimple2015_1',
+            pane: 'pane_citiessimple2015_1',
+            onEachFeature: pop_citiessimple2015_1,
+            style: style_citiessimple2015_1_0,
+        });
+        bounds_group.addLayer(layer_citiessimple2015_1);
+        map.addLayer(layer_citiessimple2015_1);
+        function pop_UEAsimple2015line_2(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">UEAcode</th>\
+                        <td>' + (feature.properties['UEAcode'] !== null ? autolinker.link(feature.properties['UEAcode'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">UEAname</th>\
+                        <td>' + (feature.properties['UEAname'] !== null ? autolinker.link(feature.properties['UEAname'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">UEAsubname</th>\
+                        <td>' + (feature.properties['UEAsubname'] !== null ? autolinker.link(feature.properties['UEAsubname'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">UEAflag</th>\
+                        <td>' + (feature.properties['UEAflag'] !== null ? autolinker.link(feature.properties['UEAflag'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+        }
+
+        function style_UEAsimple2015line_2_0() {
+            return {
+                pane: 'pane_UEAsimple2015line_2',
+                opacity: 1,
+                color: 'rgba(243,230,42,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 3.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+        }
+        map.createPane('pane_UEAsimple2015line_2');
+        map.getPane('pane_UEAsimple2015line_2').style.zIndex = 402;
+        map.getPane('pane_UEAsimple2015line_2').style['mix-blend-mode'] = 'normal';
+        var layer_UEAsimple2015line_2 = new L.geoJson(json_UEAsimple2015line_2, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_UEAsimple2015line_2',
+            layerName: 'layer_UEAsimple2015line_2',
+            pane: 'pane_UEAsimple2015line_2',
+            onEachFeature: pop_UEAsimple2015line_2,
+            style: style_UEAsimple2015line_2_0,
+        });
+        bounds_group.addLayer(layer_UEAsimple2015line_2);
+        map.addLayer(layer_UEAsimple2015line_2);
+        setBounds();
+        </script>
+    </body>
+</html>
