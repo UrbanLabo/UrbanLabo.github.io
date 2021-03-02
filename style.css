@@ -1,0 +1,41 @@
+@charset "UTF-8";
+
+body{
+  background-color: #eaf6fd;
+  padding-left: 50px;
+}
+
+#map {
+    width: 900px;
+    height: 900px;
+}
+
+h1 {
+  font-size: 40px;
+  color: #333333;
+  font-family: 'Noto Sans JP', sans-serif;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+h2 {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 28px;
+  color: #333333;
+  margin-bottom: 10px;
+}
+
+.contents-title {
+  border-bottom: solid 1.5px #dddddd;
+  margin-left: 20px;
+}
+
+.flex {
+  display: flex;
+  padding-top: 30px;
+  margin-left: 20px;
+}
+
+.item{
+  padding-right: 10px;
+}
